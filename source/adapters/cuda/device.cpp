@@ -199,8 +199,9 @@ UR_APIEXPORT ur_result_t UR_APICALL urDeviceGetInfo(ur_device_handle_t hDevice,
     ur_memory_order_capability_flags_t Capabilities =
         UR_MEMORY_ORDER_CAPABILITY_FLAG_RELAXED |
         UR_MEMORY_ORDER_CAPABILITY_FLAG_ACQUIRE |
-        UR_MEMORY_ORDER_CAPABILITY_FLAG_RELEASE |
+        UR_MEMORY_ORDER_CAPABILITY_FLAG_RELEASE;/* |
         UR_MEMORY_ORDER_CAPABILITY_FLAG_ACQ_REL;
+*/
 /*
     int Major = 0;
     UR_CHECK_ERROR(cuDeviceGetAttribute(
