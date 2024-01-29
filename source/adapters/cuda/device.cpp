@@ -199,16 +199,15 @@ UR_APIEXPORT ur_result_t UR_APICALL urDeviceGetInfo(ur_device_handle_t hDevice,
     ur_memory_order_capability_flags_t Capabilities =
         UR_MEMORY_ORDER_CAPABILITY_FLAG_RELAXED |
         UR_MEMORY_ORDER_CAPABILITY_FLAG_ACQUIRE |
-        UR_MEMORY_ORDER_CAPABILITY_FLAG_RELEASE;/* |
+        UR_MEMORY_ORDER_CAPABILITY_FLAG_RELEASE |
         UR_MEMORY_ORDER_CAPABILITY_FLAG_ACQ_REL;
-*/
-/*
+
     int Major = 0;
     UR_CHECK_ERROR(cuDeviceGetAttribute(
         &Major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, hDevice->get()));
     if (Major > 7)
       Capabilities |= UR_MEMORY_ORDER_CAPABILITY_FLAG_SEQ_CST;
-*/
+
     return ReturnValue(Capabilities);
   }
   case UR_DEVICE_INFO_ATOMIC_MEMORY_SCOPE_CAPABILITIES: {
