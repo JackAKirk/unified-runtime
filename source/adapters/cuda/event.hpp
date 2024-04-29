@@ -172,8 +172,8 @@ ur_result_t forLatestEvents(const ur_event_handle_t *EventWaitList,
     return F(EventWaitList[0]);
   }
 
-  std::vector<ur_event_handle_t> Events{EventWaitList,
-                                        EventWaitList + NumEventsInWaitList};
+  //std::vector<ur_event_handle_t> Events{EventWaitList,
+    //                                    EventWaitList + NumEventsInWaitList};
   /*std::sort(Events.begin(), Events.end(),
             [](ur_event_handle_t Event0, ur_event_handle_t Event1) {
               // Tiered sort creating sublists of streams (smallest value first)
@@ -184,16 +184,16 @@ ur_result_t forLatestEvents(const ur_event_handle_t *EventWaitList,
                       Event0->getEventID() > Event1->getEventID());
             });
 */
-  CUstream LastSeenStream = 0;
-  for (size_t i = 0; i < Events.size(); i++) {
-    auto Event = Events[i];
+  //CUstream LastSeenStream = 0;
+  for (size_t i = 0; i < NumEventsInWaitList; i++) {
+    //auto Event = EventWaitList[i];
     /*if (!Event || (i != 0 && Event->getStream() == LastSeenStream)) {
       continue;
     }
 
     LastSeenStream = Event->getStream();
 */
-    auto Result = F(Event);
+    auto Result = F(EventWaitList[i]);
     if (Result != UR_RESULT_SUCCESS) {
       return Result;
     }
