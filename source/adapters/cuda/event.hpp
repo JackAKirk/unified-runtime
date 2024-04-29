@@ -168,13 +168,13 @@ ur_result_t forLatestEvents(const ur_event_handle_t *EventWaitList,
   }
 
   // Fast path if we only have a single event
-  if (NumEventsInWaitList == 1) {
+ /* if (NumEventsInWaitList == 1) {
     return F(EventWaitList[0]);
   }
-
+*/
   std::vector<ur_event_handle_t> Events{EventWaitList,
                                         EventWaitList + NumEventsInWaitList};
-  std::sort(Events.begin(), Events.end(),
+  /*std::sort(Events.begin(), Events.end(),
             [](ur_event_handle_t Event0, ur_event_handle_t Event1) {
               // Tiered sort creating sublists of streams (smallest value first)
               // in which the corresponding events are sorted into a sequence of
@@ -183,16 +183,16 @@ ur_result_t forLatestEvents(const ur_event_handle_t *EventWaitList,
                      (Event0->getStream() == Event1->getStream() &&
                       Event0->getEventID() > Event1->getEventID());
             });
-
+*/
   CUstream LastSeenStream = 0;
   for (size_t i = 0; i < Events.size(); i++) {
     auto Event = Events[i];
-    if (!Event || (i != 0 && Event->getStream() == LastSeenStream)) {
+    /*if (!Event || (i != 0 && Event->getStream() == LastSeenStream)) {
       continue;
     }
 
     LastSeenStream = Event->getStream();
-
+*/
     auto Result = F(Event);
     if (Result != UR_RESULT_SUCCESS) {
       return Result;
