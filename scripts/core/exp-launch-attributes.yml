@@ -54,7 +54,7 @@ params:
     - type: "void*"
       name: pAttrValue
       desc: |
-            [out][optional][typename(attrID, attrSize)] array of bytes holding the launch attribute data.
+            [out][optional] array of bytes holding the launch attribute data.
             If attrSize is not equal to or greater than the real number of bytes needed to return the
             attribute values then the $X_RESULT_ERROR_INVALID_SIZE error is returned and pAttrValue is not used.
 returns:
