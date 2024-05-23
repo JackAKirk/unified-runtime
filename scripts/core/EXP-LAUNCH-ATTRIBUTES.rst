@@ -4,10 +4,10 @@
     X=x.upper()
 %>
 
-.. _experimental-launch-attributes:
+.. _experimental-launch-properties:
 
 ================================================================================
-LAUNCH Attributes
+LAUNCH Properties
 ================================================================================
 
 .. warning::
@@ -22,28 +22,29 @@ LAUNCH Attributes
 
 Terminology
 --------------------------------------------------------------------------------
-"Launch Attribute" is used to indicate an optional kernel attribute that can
-be specified at the time of a kernel launch. Such attributes can be used to
+"Launch Properties" is used to indicate optional kernel launch properties that can
+be specified at the time of a kernel launch. Such properties can be used to
 enable hardware specific kernel features.
 
 Motivation
 --------------------------------------------------------------------------------
-Advances in hardware sometimes require new kernel attributes. One example is
+Advances in hardware sometimes require new kernel properties. One example is
 distributed shared memory as used by Nvidia Hopper GPUs. Launching a kernel
 that supports distributed shared memory requires specifying a thread cluster
 dimension over which the shared memory is accessible. Additionally some
-applications require specification of kernel attributes at runtime.
+applications require specification of kernel properties at launch-time.
 
 This extension is a future-proof and portable solution that supports these two requirements.
-Instead of using a fixed set of kernel arguments, the approach is to introduce the
-`exp_launch_attribute_t` type that enables a more flexible approach.
-Each `exp_launch_attribute_t` instance corresponds to a specific kernel launch attribute.
-One new function is introduced; `urEnqueueKernelLaunchCustomExp` takes an
-array of `exp_launch_attribute_t` as an argument, and launches a kernel using these
-attributes. `urEnqueueKernelLaunchCustomExp` corresponds closely to the CUDA Driver API
+Instead of using a fixed set of kernel enqueue arguments, the approach is to introduce the
+`exp_kernel_launch_desc_t` descriptor and associated properties that enables a more flexible approach.
+The `exp_kernel_launch_desc_t` descriptor points to a linked-list of specific kernel launch properties.
+One new function is introduced: `urEnqueueKernelLaunchCustomExp`. A
+`exp_kernel_launch_desc_t` pointer can be passed to  `urEnqueueKernelLaunchCustomExp` as an argument,
+which then launches a native kernel using the list of launch properties associated with the descriptor.
+`urEnqueueKernelLaunchCustomExp` corresponds closely to the CUDA Driver API
 `cuLaunchKernelEx`.
 
-Many kernel properties can be supported, such as cooperative kernels. As such,
+Many kernel lauch properties can be supported, such as cooperative kernel launches. As such,
 eventually this extension should be able to replace the cooperative kernels
 UR extension.
 
@@ -53,22 +54,22 @@ API
 Macros
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ${X}_LAUNCH_ATTRIBUTES_EXTENSION_STRING_EXP
+* ${X}_LAUNCH_PROPERTIES_EXTENSION_STRING_EXP
 
 Enums
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* ${x}_structure_type_t
+    ${X}_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS
+    ${X}_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE
+    ${X}_STRUCTURE_TYPE_EXP_KERNEL_LAUNCH_DESC
 
-* ${x}_exp_launch_attribute_id_t
 
-Unions
+Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ${x}_exp_launch_attribute_value_t
-
-Structs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* ${x}_exp_launch_attribute_t
+* ${x}_exp_launch_properties_cluster_dims_t
+* ${x}_exp_launch_properties_cooperative_t
+* ${x}_exp_kernel_launch_desc_t
 
 Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,7 +80,7 @@ Support
 --------------------------------------------------------------------------------
 
 Adapters which support this experimental feature *must* return the valid string
-defined in ``${X}_LAUNCH_ATTRIBUTES_EXTENSION_STRING_EXP`` as one of the options from
+defined in ``${X}_LAUNCH_PROPERTIES_EXTENSION_STRING_EXP`` as one of the options from
 ${x}DeviceGetInfo when querying for ${X}_DEVICE_INFO_EXTENSIONS.
 
 Changelog
