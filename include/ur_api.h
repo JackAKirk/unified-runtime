@@ -280,7 +280,7 @@ typedef enum ur_structure_type_t {
     UR_STRUCTURE_TYPE_EXP_WIN32_HANDLE = 0x2004,                             ///< ::ur_exp_win32_handle_t
     UR_STRUCTURE_TYPE_EXP_SAMPLER_ADDR_MODES = 0x2005,                       ///< ::ur_exp_sampler_addr_modes_t
     UR_STRUCTURE_TYPE_EXP_SAMPLER_CUBEMAP_PROPERTIES = 0x2006,               ///< ::ur_exp_sampler_cubemap_properties_t
-    UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS = 0x5011,           ///< ::ur_exp_launch_properties_cluster_dims_t
+    UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS = 0x5010,           ///< ::ur_exp_launch_properties_cluster_dims_t
     UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE = 0x5011,            ///< ::ur_exp_launch_properties_cooperative_t
     UR_STRUCTURE_TYPE_EXP_KERNEL_LAUNCH_DESC = 0x5012,                       ///< ::ur_exp_kernel_launch_desc_t
     /// @cond
