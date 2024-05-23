@@ -7733,10 +7733,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueKernelLaunchCustomExp(
     ///< specify the number of local work-items forming a work-group that will
     ///< execute the kernel function. If nullptr, the runtime implementation
     ///< will choose the work-group size.
-    uint32_t numAttrsInLaunchAttrList, ///< [in] size of the launch attr list
-    const ur_exp_launch_attribute_t *
-        launchAttrList, ///< [in][range(0, numAttrsInLaunchAttrList)] pointer to a list of launch
-                        ///< attributes
+    const ur_exp_kernel_launch_desc_t
+        *kernelLaunchDesc, ///< [in] Descriptor of the custom kernel launch
     uint32_t numEventsInWaitList, ///< [in] size of the event wait list
     const ur_event_handle_t *
         phEventWaitList, ///< [in][optional][range(0, numEventsInWaitList)] pointer to a list of
@@ -7763,10 +7761,9 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueKernelLaunchCustomExp(
     hKernel = reinterpret_cast<ur_kernel_object_t *>(hKernel)->handle;
 
     // forward to device-platform
-    result = pfnKernelLaunchCustomExp(hQueue, hKernel, workDim, pGlobalWorkSize,
-                                      pLocalWorkSize, numAttrsInLaunchAttrList,
-                                      launchAttrList, numEventsInWaitList,
-                                      phEventWaitList, phEvent);
+    result = pfnKernelLaunchCustomExp(
+        hQueue, hKernel, workDim, pGlobalWorkSize, pLocalWorkSize,
+        kernelLaunchDesc, numEventsInWaitList, phEventWaitList, phEvent);
 
     return result;
 }

@@ -207,11 +207,6 @@ inline ur_result_t printTagged(std::ostream &os, const void *ptr, ur_exp_command
 template <>
 inline ur_result_t printTagged(std::ostream &os, const void *ptr, ur_exp_command_buffer_command_info_t value, size_t size);
 
-inline ur_result_t printUnion(
-    std::ostream &os,
-    const union ur_exp_launch_attribute_value_t params,
-    const enum ur_exp_launch_attribute_id_t tag);
-
 template <>
 inline ur_result_t printTagged(std::ostream &os, const void *ptr, ur_exp_peer_info_t value, size_t size);
 
@@ -340,8 +335,9 @@ inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct 
 inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_command_buffer_update_pointer_arg_desc_t params);
 inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_command_buffer_update_value_arg_desc_t params);
 inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_command_buffer_update_kernel_launch_desc_t params);
-inline std::ostream &operator<<(std::ostream &os, enum ur_exp_launch_attribute_id_t value);
-inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_launch_attribute_t params);
+inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_launch_properties_cluster_dims_t params);
+inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_launch_properties_cooperative_t params);
+inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_kernel_launch_desc_t params);
 inline std::ostream &operator<<(std::ostream &os, enum ur_exp_peer_info_t value);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1082,6 +1078,15 @@ inline std::ostream &operator<<(std::ostream &os, enum ur_structure_type_t value
     case UR_STRUCTURE_TYPE_EXP_SAMPLER_CUBEMAP_PROPERTIES:
         os << "UR_STRUCTURE_TYPE_EXP_SAMPLER_CUBEMAP_PROPERTIES";
         break;
+    case UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS:
+        os << "UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS";
+        break;
+    case UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE:
+        os << "UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE";
+        break;
+    case UR_STRUCTURE_TYPE_EXP_KERNEL_LAUNCH_DESC:
+        os << "UR_STRUCTURE_TYPE_EXP_KERNEL_LAUNCH_DESC";
+        break;
     default:
         os << "unknown enumerator";
         break;
@@ -1331,6 +1336,21 @@ inline ur_result_t printStruct(std::ostream &os, const void *ptr) {
 
     case UR_STRUCTURE_TYPE_EXP_SAMPLER_CUBEMAP_PROPERTIES: {
         const ur_exp_sampler_cubemap_properties_t *pstruct = (const ur_exp_sampler_cubemap_properties_t *)ptr;
+        printPtr(os, pstruct);
+    } break;
+
+    case UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS: {
+        const ur_exp_launch_properties_cluster_dims_t *pstruct = (const ur_exp_launch_properties_cluster_dims_t *)ptr;
+        printPtr(os, pstruct);
+    } break;
+
+    case UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE: {
+        const ur_exp_launch_properties_cooperative_t *pstruct = (const ur_exp_launch_properties_cooperative_t *)ptr;
+        printPtr(os, pstruct);
+    } break;
+
+    case UR_STRUCTURE_TYPE_EXP_KERNEL_LAUNCH_DESC: {
+        const ur_exp_kernel_launch_desc_t *pstruct = (const ur_exp_kernel_launch_desc_t *)ptr;
         printPtr(os, pstruct);
     } break;
     default:
@@ -9848,79 +9868,86 @@ inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_command_bu
     return os;
 }
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Print operator for the ur_exp_launch_attribute_id_t type
+/// @brief Print operator for the ur_exp_launch_properties_cluster_dims_t type
 /// @returns
 ///     std::ostream &
-inline std::ostream &operator<<(std::ostream &os, enum ur_exp_launch_attribute_id_t value) {
-    switch (value) {
-    case UR_EXP_LAUNCH_ATTRIBUTE_ID_IGNORE:
-        os << "UR_EXP_LAUNCH_ATTRIBUTE_ID_IGNORE";
-        break;
-    case UR_EXP_LAUNCH_ATTRIBUTE_ID_COOPERATIVE:
-        os << "UR_EXP_LAUNCH_ATTRIBUTE_ID_COOPERATIVE";
-        break;
-    case UR_EXP_LAUNCH_ATTRIBUTE_ID_CLUSTER_DIMENSION:
-        os << "UR_EXP_LAUNCH_ATTRIBUTE_ID_CLUSTER_DIMENSION";
-        break;
-    default:
-        os << "unknown enumerator";
-        break;
-    }
-    return os;
-}
-namespace ur::details {
+inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_launch_properties_cluster_dims_t params) {
+    os << "(struct ur_exp_launch_properties_cluster_dims_t){";
 
-///////////////////////////////////////////////////////////////////////////////
-// @brief Print ur_exp_launch_attribute_value_t union
-inline ur_result_t printUnion(
-    std::ostream &os,
-    const union ur_exp_launch_attribute_value_t params,
-    const enum ur_exp_launch_attribute_id_t tag) {
-    os << "(union ur_exp_launch_attribute_value_t){";
+    os << ".stype = ";
 
-    switch (tag) {
-    case UR_EXP_LAUNCH_ATTRIBUTE_ID_CLUSTER_DIMENSION:
-
-        os << ".clusterDim = {";
-        for (auto i = 0; i < 3; i++) {
-            if (i != 0) {
-                os << ", ";
-            }
-
-            os << (params.clusterDim[i]);
-        }
-        os << "}";
-
-        break;
-    case UR_EXP_LAUNCH_ATTRIBUTE_ID_COOPERATIVE:
-
-        os << ".cooperative = ";
-
-        os << (params.cooperative);
-
-        break;
-    default:
-        os << "<unknown>";
-        return UR_RESULT_ERROR_INVALID_ENUMERATION;
-    }
-    os << "}";
-    return UR_RESULT_SUCCESS;
-}
-} // namespace ur::details
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Print operator for the ur_exp_launch_attribute_t type
-/// @returns
-///     std::ostream &
-inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_launch_attribute_t params) {
-    os << "(struct ur_exp_launch_attribute_t){";
-
-    os << ".id = ";
-
-    os << (params.id);
+    os << (params.stype);
 
     os << ", ";
-    os << ".value = ";
-    ur::details::printUnion(os, (params.value), params.id);
+    os << ".pNext = ";
+
+    ur::details::printStruct(os,
+                             (params.pNext));
+
+    os << ", ";
+    os << ".x = ";
+
+    os << (params.x);
+
+    os << ", ";
+    os << ".y = ";
+
+    os << (params.y);
+
+    os << ", ";
+    os << ".z = ";
+
+    os << (params.z);
+
+    os << "}";
+    return os;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Print operator for the ur_exp_launch_properties_cooperative_t type
+/// @returns
+///     std::ostream &
+inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_launch_properties_cooperative_t params) {
+    os << "(struct ur_exp_launch_properties_cooperative_t){";
+
+    os << ".stype = ";
+
+    os << (params.stype);
+
+    os << ", ";
+    os << ".pNext = ";
+
+    ur::details::printStruct(os,
+                             (params.pNext));
+
+    os << ", ";
+    os << ".cooperative = ";
+
+    os << (params.cooperative);
+
+    os << "}";
+    return os;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Print operator for the ur_exp_kernel_launch_desc_t type
+/// @returns
+///     std::ostream &
+inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_kernel_launch_desc_t params) {
+    os << "(struct ur_exp_kernel_launch_desc_t){";
+
+    os << ".stype = ";
+
+    os << (params.stype);
+
+    os << ", ";
+    os << ".pNext = ";
+
+    ur::details::printStruct(os,
+                             (params.pNext));
+
+    os << ", ";
+    os << ".numProperties = ";
+
+    os << (params.numProperties);
 
     os << "}";
     return os;
@@ -14182,20 +14209,10 @@ inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct 
                           *(params->ppLocalWorkSize));
 
     os << ", ";
-    os << ".numAttrsInLaunchAttrList = ";
+    os << ".kernelLaunchDesc = ";
 
-    os << *(params->pnumAttrsInLaunchAttrList);
-
-    os << ", ";
-    os << ".launchAttrList = {";
-    for (size_t i = 0; *(params->plaunchAttrList) != NULL && i < *params->pnumAttrsInLaunchAttrList; ++i) {
-        if (i != 0) {
-            os << ", ";
-        }
-
-        os << (*(params->plaunchAttrList))[i];
-    }
-    os << "}";
+    ur::details::printPtr(os,
+                          *(params->pkernelLaunchDesc));
 
     os << ", ";
     os << ".numEventsInWaitList = ";
