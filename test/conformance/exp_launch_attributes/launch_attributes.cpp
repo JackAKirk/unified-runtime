@@ -1,7 +1,7 @@
 // Copyright (C) 2024 Intel Corporation
 // Part of the Unified-Runtime Project, under the Apache License v2.0 with LLVM
-// Exceptions. See LICENSE.TXT SPDX-License-Identifier: Apache-2.0 WITH
-// LLVM-exception
+// Exceptions. See LICENSE.TXT
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
 #include <uur/fixtures.h>
 
@@ -32,15 +32,15 @@ TEST_P(urEnqueueKernelLaunchCustomTest, Success) {
 
   std::string_view extensions_string(returned_extensions.get());
   const bool launch_attributes_support =
-      extensions_string.find(UR_LAUNCH_ATTRIBUTES_EXTENSION_STRING_EXP) !=
+      extensions_string.find(UR_LAUNCH_PROPERTIES_EXTENSION_STRING_EXP) !=
       std::string::npos;
 
   if (!launch_attributes_support) {
     GTEST_SKIP() << "EXP launch attributes feature is not supported.";
   }
 
-  std::vector<ur_exp_launch_attribute_t> attrs(1);
-  attrs[0].id = UR_EXP_LAUNCH_ATTRIBUTE_ID_IGNORE;
+  //std::vector<ur_exp_launch_attribute_t> attrs(1);
+  //attrs[0].id = UR_EXP_LAUNCH_ATTRIBUTE_ID_IGNORE;
 
   ASSERT_SUCCESS(urDeviceGetInfo(device, UR_DEVICE_INFO_PROFILE, 0, nullptr,
                                  &returned_size));
@@ -53,7 +53,7 @@ TEST_P(urEnqueueKernelLaunchCustomTest, Success) {
   std::string_view backend_string(returned_backend.get());
   const bool cuda_backend = backend_string.find("CUDA") != std::string::npos;
 
-  if (cuda_backend) {
+  /*if (cuda_backend) {
     ASSERT_SUCCESS(urDeviceGetInfo(device, UR_DEVICE_INFO_VERSION, 0, nullptr,
                                    &returned_size));
 
@@ -83,13 +83,28 @@ TEST_P(urEnqueueKernelLaunchCustomTest, Success) {
 
       attrs.push_back(cluster_dims_attr);
     }
-  }
+  }*/
+
+    ur_exp_kernel_launch_desc_t kernel_launch_desc{
+        UR_STRUCTURE_TYPE_EXP_KERNEL_LAUNCH_DESC, /* stype */
+        nullptr,                        /* pNext */
+        0,                     /* normalizedCoords */
+    };
+    
+ur_exp_launch_properties_cooperative_t coop_prop
+{
+  UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE,
+        nullptr,                        /* pNext */
+        0,                     /* cooperative */
+    };
+
+kernel_launch_desc.pNext = &coop_prop;
   ur_mem_handle_t buffer = nullptr;
   AddBuffer1DArg(sizeof(val) * global_size, &buffer);
   AddPodArg(val);
 
   ASSERT_SUCCESS(urEnqueueKernelLaunchCustomExp(
-      queue, kernel, n_dimensions, &global_size, nullptr, 1, &attrs[0], 0,
+      queue, kernel, n_dimensions, &global_size, nullptr, &kernel_launch_desc, 0,
       nullptr, nullptr));
   ASSERT_SUCCESS(urQueueFinish(queue));
   ValidateBuffer(buffer, sizeof(val) * global_size, val);
