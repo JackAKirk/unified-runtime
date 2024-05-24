@@ -8362,10 +8362,10 @@ ur_result_t UR_APICALL urEnqueueTimestampRecordingExp(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Launch kernel with custom Launch attributes
+/// @brief Launch a kernel with custom launch properties
 ///
 /// @details
-///     - Launches the kernel using the specified launch attributes
+///     - Launches the kernel using the specified launch properties
 ///     - Consult the appropriate adapter driver documentation for details of
 ///       adapter specific behavior and native error codes that may be returned.
 ///
@@ -8387,6 +8387,8 @@ ur_result_t UR_APICALL urEnqueueTimestampRecordingExp(
 ///         + `NULL == pGlobalWorkSize`
 ///         + `NULL == kernelLaunchDesc`
 ///         + NULL == pGlobalWorkSize
+///     - ::UR_RESULT_ERROR_UNSUPPORTED_VERSION
+///         + `::UR_STRUCTURE_TYPE_BASE_DESC != kernelLaunchDesc->stype`
 ///     - ::UR_RESULT_SUCCESS
 ///     - ::UR_RESULT_ERROR_UNINITIALIZED
 ///     - ::UR_RESULT_ERROR_DEVICE_LOST
@@ -8420,8 +8422,8 @@ ur_result_t UR_APICALL urEnqueueKernelLaunchCustomExp(
     ///< specify the number of local work-items forming a work-group that will
     ///< execute the kernel function. If nullptr, the runtime implementation
     ///< will choose the work-group size.
-    const ur_exp_kernel_launch_desc_t
-        *kernelLaunchDesc, ///< [in] Descriptor of the custom kernel launch
+    const ur_base_desc_t
+        *kernelLaunchDesc,        ///< [in] Descriptor of a custom kernel launch
     uint32_t numEventsInWaitList, ///< [in] size of the event wait list
     const ur_event_handle_t *
         phEventWaitList, ///< [in][optional][range(0, numEventsInWaitList)] pointer to a list of

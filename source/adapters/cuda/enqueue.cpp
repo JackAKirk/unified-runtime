@@ -487,16 +487,15 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueCooperativeKernelLaunchExp(
 UR_APIEXPORT ur_result_t UR_APICALL urEnqueueKernelLaunchCustomExp(
     ur_queue_handle_t hQueue, ur_kernel_handle_t hKernel, uint32_t workDim,
     const size_t *pGlobalWorkSize, const size_t *pLocalWorkSize,
-    uint32_t numAttrsInLaunchAttrList,
-    const ur_exp_launch_attribute_t *launchAttrList,
+    const ur_exp_kernel_launch_desc_t *launchAttrList,
     uint32_t numEventsInWaitList, const ur_event_handle_t *phEventWaitList,
     ur_event_handle_t *phEvent) {
 
-  if (numAttrsInLaunchAttrList == 0) {
+  /*if (numAttrsInLaunchAttrList == 0) {
     urEnqueueKernelLaunch(hQueue, hKernel, workDim, nullptr, pGlobalWorkSize,
                           pLocalWorkSize, numEventsInWaitList, phEventWaitList,
                           phEvent);
-  }
+  }*/
 
   // Preconditions
   UR_ASSERT(hQueue->getDevice() == hKernel->getProgram()->getDevice(),
@@ -504,29 +503,33 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueKernelLaunchCustomExp(
   UR_ASSERT(workDim > 0, UR_RESULT_ERROR_INVALID_WORK_DIMENSION);
   UR_ASSERT(workDim < 4, UR_RESULT_ERROR_INVALID_WORK_DIMENSION);
 
-  if (launchAttrList == NULL) {
-    return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+  // if (launchAttrList == NULL) {
+  // return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+  //}
+
+  std::vector<CUlaunchAttribute> launch_attributes(
+      1); //(numAttrsInLaunchAttrList);
+          // for (uint32_t i = 0; i < numAttrsInLaunchAttrList; i++) {
+  if (pNext == nullptr) {
+    launch_attribute[0].id = CU_LAUNCH_ATTRIBUTE_IGNORE;
+    break;
   }
+}
+else {
+  while (pNext != nullptr) {
+    //.push_back
+    CUlaunchAttribute > launch_attr;
+    // if (BaseDesc->stype == UR_STRUCTURE_TYPE_EXP_SAMPLER_MIP_PROPERTIES) {
+    switch (pNext->stype) {
+    case UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS: {
 
-  std::vector<CUlaunchAttribute> launch_attribute(numAttrsInLaunchAttrList);
-  for (uint32_t i = 0; i < numAttrsInLaunchAttrList; i++) {
-    switch (launchAttrList[i].id) {
-    case UR_EXP_LAUNCH_ATTRIBUTE_ID_IGNORE: {
-      launch_attribute[i].id = CU_LAUNCH_ATTRIBUTE_IGNORE;
+      launch_attr.id = CU_LAUNCH_ATTRIBUTE_CLUSTER_DIMENSION;
+      launch_attr.value.clusterDim.x = launchAttr.value.clusterDim[0];
+      launch_attribute[i].value.clusterDim.y = launchAttr.value.clusterDim[1];
+      launch_attr.value.clusterDim.z = launchAttrList[i].value.clusterDim[2];
       break;
     }
-    case UR_EXP_LAUNCH_ATTRIBUTE_ID_CLUSTER_DIMENSION: {
-
-      launch_attribute[i].id = CU_LAUNCH_ATTRIBUTE_CLUSTER_DIMENSION;
-      launch_attribute[i].value.clusterDim.x =
-          launchAttrList[i].value.clusterDim[0];
-      launch_attribute[i].value.clusterDim.y =
-          launchAttrList[i].value.clusterDim[1];
-      launch_attribute[i].value.clusterDim.z =
-          launchAttrList[i].value.clusterDim[2];
-      break;
-    }
-    case UR_EXP_LAUNCH_ATTRIBUTE_ID_COOPERATIVE: {
+    case UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE: {
       launch_attribute[i].id = CU_LAUNCH_ATTRIBUTE_COOPERATIVE;
       launch_attribute[i].value.cooperative =
           launchAttrList[i].value.cooperative;
@@ -536,135 +539,135 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueKernelLaunchCustomExp(
       return UR_RESULT_ERROR_INVALID_ENUMERATION;
     }
     }
+    launch_attributes.push_back(launch_attr);
+  }
+}
+
+std::vector<ur_event_handle_t> DepEvents(phEventWaitList,
+                                         phEventWaitList + numEventsInWaitList);
+std::vector<std::pair<ur_mem_handle_t, ur_lock>> MemMigrationLocks;
+
+// phEventWaitList only contains events that are handed to UR by the SYCL
+// runtime. However since UR handles memory dependencies within a context
+// we may need to add more events to our dependent events list if the UR
+// context contains multiple devices
+if (hQueue->getContext()->Devices.size() > 1) {
+  MemMigrationLocks.reserve(hKernel->Args.MemObjArgs.size());
+  for (auto &MemArg : hKernel->Args.MemObjArgs) {
+    bool PushBack = false;
+    if (auto MemDepEvent = MemArg.Mem->LastEventWritingToMemObj;
+        MemDepEvent && std::find(DepEvents.begin(), DepEvents.end(),
+                                 MemDepEvent) == DepEvents.end()) {
+      DepEvents.push_back(MemDepEvent);
+      PushBack = true;
+    }
+    if ((MemArg.AccessFlags &
+         (UR_MEM_FLAG_READ_WRITE | UR_MEM_FLAG_WRITE_ONLY)) ||
+        PushBack) {
+      if (std::find_if(MemMigrationLocks.begin(), MemMigrationLocks.end(),
+                       [MemArg](auto &Lock) {
+                         return Lock.first == MemArg.Mem;
+                       }) == MemMigrationLocks.end())
+        MemMigrationLocks.emplace_back(
+            std::pair{MemArg.Mem, ur_lock{MemArg.Mem->MemoryMigrationMutex}});
+    }
+  }
+}
+
+// Early exit for zero size kernel
+if (*pGlobalWorkSize == 0) {
+  return urEnqueueEventsWaitWithBarrier(hQueue, numEventsInWaitList,
+                                        phEventWaitList, phEvent);
+}
+
+// Set the number of threads per block to the number of threads per warp
+// by default unless user has provided a better number
+size_t ThreadsPerBlock[3] = {32u, 1u, 1u};
+size_t BlocksPerGrid[3] = {1u, 1u, 1u};
+
+uint32_t LocalSize = hKernel->getLocalSize();
+CUfunction CuFunc = hKernel->get();
+
+// This might return UR_RESULT_ERROR_ADAPTER_SPECIFIC, which cannot be handled
+// using the standard UR_CHECK_ERROR
+if (ur_result_t Ret = setKernelParams(
+        hQueue->getContext(), hQueue->Device, workDim, nullptr, pGlobalWorkSize,
+        pLocalWorkSize, hKernel, CuFunc, ThreadsPerBlock, BlocksPerGrid);
+    Ret != UR_RESULT_SUCCESS)
+  return Ret;
+
+try {
+  std::unique_ptr<ur_event_handle_t_> RetImplEvent{nullptr};
+
+  ScopedContext Active(hQueue->getDevice());
+  uint32_t StreamToken;
+  ur_stream_guard_ Guard;
+  CUstream CuStream = hQueue->getNextComputeStream(
+      numEventsInWaitList, phEventWaitList, Guard, &StreamToken);
+
+  if (DepEvents.size()) {
+    UR_CHECK_ERROR(enqueueEventsWait(hQueue, CuStream, DepEvents.size(),
+                                     DepEvents.data()));
   }
 
-std::vector<ur_event_handle_t> DepEvents(
-      phEventWaitList, phEventWaitList + numEventsInWaitList);
-  std::vector<std::pair<ur_mem_handle_t, ur_lock>> MemMigrationLocks;
-
-  // phEventWaitList only contains events that are handed to UR by the SYCL
-  // runtime. However since UR handles memory dependencies within a context
-  // we may need to add more events to our dependent events list if the UR
-  // context contains multiple devices
+  // For memory migration across devices in the same context
   if (hQueue->getContext()->Devices.size() > 1) {
-    MemMigrationLocks.reserve(hKernel->Args.MemObjArgs.size());
     for (auto &MemArg : hKernel->Args.MemObjArgs) {
-      bool PushBack = false;
-      if (auto MemDepEvent = MemArg.Mem->LastEventWritingToMemObj;
-          MemDepEvent && std::find(DepEvents.begin(), DepEvents.end(),
-                                   MemDepEvent) == DepEvents.end()) {
-        DepEvents.push_back(MemDepEvent);
-        PushBack = true;
-      }
-      if ((MemArg.AccessFlags &
-           (UR_MEM_FLAG_READ_WRITE | UR_MEM_FLAG_WRITE_ONLY)) ||
-          PushBack) {
-        if (std::find_if(MemMigrationLocks.begin(), MemMigrationLocks.end(),
-                         [MemArg](auto &Lock) {
-                           return Lock.first == MemArg.Mem;
-                         }) == MemMigrationLocks.end())
-          MemMigrationLocks.emplace_back(
-              std::pair{MemArg.Mem, ur_lock{MemArg.Mem->MemoryMigrationMutex}});
-      }
+      migrateMemoryToDeviceIfNeeded(MemArg.Mem, hQueue->getDevice());
     }
   }
 
-  // Early exit for zero size kernel
-  if (*pGlobalWorkSize == 0) {
-    return urEnqueueEventsWaitWithBarrier(hQueue, numEventsInWaitList,
-                                          phEventWaitList, phEvent);
+  if (phEvent) {
+    RetImplEvent =
+        std::unique_ptr<ur_event_handle_t_>(ur_event_handle_t_::makeNative(
+            UR_COMMAND_KERNEL_LAUNCH, hQueue, CuStream, StreamToken));
+    UR_CHECK_ERROR(RetImplEvent->start());
   }
 
-  // Set the number of threads per block to the number of threads per warp
-  // by default unless user has provided a better number
-  size_t ThreadsPerBlock[3] = {32u, 1u, 1u};
-  size_t BlocksPerGrid[3] = {1u, 1u, 1u};
-
-  uint32_t LocalSize = hKernel->getLocalSize();
-  CUfunction CuFunc = hKernel->get();
-
-  // This might return UR_RESULT_ERROR_ADAPTER_SPECIFIC, which cannot be handled
-  // using the standard UR_CHECK_ERROR
-  if (ur_result_t Ret =
-          setKernelParams(hQueue->getContext(), hQueue->Device, workDim,
-                          nullptr, pGlobalWorkSize, pLocalWorkSize,
-                          hKernel, CuFunc, ThreadsPerBlock, BlocksPerGrid);
-      Ret != UR_RESULT_SUCCESS)
-    return Ret;
-
-  try {
-    std::unique_ptr<ur_event_handle_t_> RetImplEvent{nullptr};
-
-    ScopedContext Active(hQueue->getDevice());
-    uint32_t StreamToken;
-    ur_stream_guard_ Guard;
-    CUstream CuStream = hQueue->getNextComputeStream(
-        numEventsInWaitList, phEventWaitList, Guard, &StreamToken);
-
-    if (DepEvents.size()) {
-      UR_CHECK_ERROR(enqueueEventsWait(hQueue, CuStream, DepEvents.size(),
-                                       DepEvents.data()));
-    }
-
-    // For memory migration across devices in the same context
-    if (hQueue->getContext()->Devices.size() > 1) {
-      for (auto &MemArg : hKernel->Args.MemObjArgs) {
-        migrateMemoryToDeviceIfNeeded(MemArg.Mem, hQueue->getDevice());
+  // Once event has been started we can unlock MemoryMigrationMutex
+  if (hQueue->getContext()->Devices.size() > 1) {
+    for (auto &MemArg : hKernel->Args.MemObjArgs) {
+      // Telling the ur_mem_handle_t that it will need to wait on this kernel
+      // if it has been written to
+      if (phEvent && (MemArg.AccessFlags &
+                      (UR_MEM_FLAG_READ_WRITE | UR_MEM_FLAG_WRITE_ONLY))) {
+        MemArg.Mem->setLastEventWritingToMemObj(RetImplEvent.get());
       }
     }
-
-    if (phEvent) {
-      RetImplEvent =
-          std::unique_ptr<ur_event_handle_t_>(ur_event_handle_t_::makeNative(
-              UR_COMMAND_KERNEL_LAUNCH, hQueue, CuStream, StreamToken));
-      UR_CHECK_ERROR(RetImplEvent->start());
-    }
-
-    // Once event has been started we can unlock MemoryMigrationMutex
-    if (hQueue->getContext()->Devices.size() > 1) {
-      for (auto &MemArg : hKernel->Args.MemObjArgs) {
-        // Telling the ur_mem_handle_t that it will need to wait on this kernel
-        // if it has been written to
-        if (phEvent && (MemArg.AccessFlags &
-                        (UR_MEM_FLAG_READ_WRITE | UR_MEM_FLAG_WRITE_ONLY))) {
-          MemArg.Mem->setLastEventWritingToMemObj(RetImplEvent.get());
-        }
-      }
-      // We can release the MemoryMigrationMutexes now
-      MemMigrationLocks.clear();
-    }
-
-    auto &ArgIndices = hKernel->getArgIndices();
-
-    CUlaunchConfig launch_config;
-    launch_config.gridDimX = BlocksPerGrid[0];
-    launch_config.gridDimY = BlocksPerGrid[1];
-    launch_config.gridDimZ = BlocksPerGrid[2];
-    launch_config.blockDimX = ThreadsPerBlock[0];
-    launch_config.blockDimY = ThreadsPerBlock[1];
-    launch_config.blockDimZ = ThreadsPerBlock[2];
-
-    launch_config.sharedMemBytes = LocalSize;
-    launch_config.hStream = CuStream;
-    launch_config.attrs = &launch_attribute[0];
-    launch_config.numAttrs = numAttrsInLaunchAttrList;
-
-    UR_CHECK_ERROR(cuLaunchKernelEx(&launch_config, CuFunc,
-                                    const_cast<void **>(ArgIndices.data()),
-                                    nullptr));
-
-    if (LocalSize != 0)
-      hKernel->clearLocalSize();
-
-    if (phEvent) {
-      UR_CHECK_ERROR(RetImplEvent->record());
-      *phEvent = RetImplEvent.release();
-    }
-
-  } catch (ur_result_t Err) {
-    return Err;
+    // We can release the MemoryMigrationMutexes now
+    MemMigrationLocks.clear();
   }
-  return UR_RESULT_SUCCESS;
+
+  auto &ArgIndices = hKernel->getArgIndices();
+
+  CUlaunchConfig launch_config;
+  launch_config.gridDimX = BlocksPerGrid[0];
+  launch_config.gridDimY = BlocksPerGrid[1];
+  launch_config.gridDimZ = BlocksPerGrid[2];
+  launch_config.blockDimX = ThreadsPerBlock[0];
+  launch_config.blockDimY = ThreadsPerBlock[1];
+  launch_config.blockDimZ = ThreadsPerBlock[2];
+
+  launch_config.sharedMemBytes = LocalSize;
+  launch_config.hStream = CuStream;
+  launch_config.attrs = &launch_attribute[0];
+  launch_config.numAttrs = numAttrsInLaunchAttrList;
+
+  UR_CHECK_ERROR(cuLaunchKernelEx(
+      &launch_config, CuFunc, const_cast<void **>(ArgIndices.data()), nullptr));
+
+  if (LocalSize != 0)
+    hKernel->clearLocalSize();
+
+  if (phEvent) {
+    UR_CHECK_ERROR(RetImplEvent->record());
+    *phEvent = RetImplEvent.release();
+  }
+
+} catch (ur_result_t Err) {
+  return Err;
+}
+return UR_RESULT_SUCCESS;
 }
 
 /// Set parameters for general 3D memory copy.

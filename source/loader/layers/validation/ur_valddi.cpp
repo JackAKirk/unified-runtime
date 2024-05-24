@@ -9012,8 +9012,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueKernelLaunchCustomExp(
     ///< specify the number of local work-items forming a work-group that will
     ///< execute the kernel function. If nullptr, the runtime implementation
     ///< will choose the work-group size.
-    const ur_exp_kernel_launch_desc_t
-        *kernelLaunchDesc, ///< [in] Descriptor of the custom kernel launch
+    const ur_base_desc_t
+        *kernelLaunchDesc,        ///< [in] Descriptor of a custom kernel launch
     uint32_t numEventsInWaitList, ///< [in] size of the event wait list
     const ur_event_handle_t *
         phEventWaitList, ///< [in][optional][range(0, numEventsInWaitList)] pointer to a list of
@@ -9045,6 +9045,10 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueKernelLaunchCustomExp(
 
         if (NULL == kernelLaunchDesc) {
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (UR_STRUCTURE_TYPE_BASE_DESC != kernelLaunchDesc->stype) {
+            return UR_RESULT_ERROR_UNSUPPORTED_VERSION;
         }
 
         if (phEventWaitList != NULL && numEventsInWaitList > 0) {

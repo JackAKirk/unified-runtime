@@ -96,9 +96,9 @@ struct stype_map<ur_exp_sampler_addr_modes_t> : stype_map_impl<UR_STRUCTURE_TYPE
 template <>
 struct stype_map<ur_exp_sampler_cubemap_properties_t> : stype_map_impl<UR_STRUCTURE_TYPE_EXP_SAMPLER_CUBEMAP_PROPERTIES> {};
 template <>
-struct stype_map<ur_exp_launch_properties_cluster_dims_t> : stype_map_impl<UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS> {};
+struct stype_map<ur_exp_properties_dim3_t> : stype_map_impl<UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS> {};
 template <>
-struct stype_map<ur_exp_launch_properties_cooperative_t> : stype_map_impl<UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE> {};
+struct stype_map<ur_exp_properties_bool_t> : stype_map_impl<UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE> {};
 template <>
-struct stype_map<ur_exp_kernel_launch_desc_t> : stype_map_impl<UR_STRUCTURE_TYPE_EXP_KERNEL_LAUNCH_DESC> {};
+struct stype_map<ur_base_desc_t> : stype_map_impl<UR_STRUCTURE_TYPE_EXP_BASE_DESC> {};
 

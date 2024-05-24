@@ -35,16 +35,16 @@ dimension over which the shared memory is accessible. Additionally some
 applications require specification of kernel properties at launch-time.
 
 This extension is a future-proof and portable solution that supports these two requirements.
-Instead of using a fixed set of kernel enqueue arguments, the approach is to introduce the
-`exp_kernel_launch_desc_t` descriptor and associated properties that enables a more flexible approach.
-The `exp_kernel_launch_desc_t` descriptor points to a linked-list of specific kernel launch properties.
-One new function is introduced: `urEnqueueKernelLaunchCustomExp`. A
-`exp_kernel_launch_desc_t` pointer can be passed to  `urEnqueueKernelLaunchCustomExp` as an argument,
-which then launches a native kernel using the list of launch properties associated with the descriptor.
+Instead of using a fixed set of kernel enqueue arguments, the approach is to introduce new
+property types, such as `ur_exp_properties_dim3_t` which can be used to specify
+the cluster dimensions,
+that can be passed via a descriptor to a new custom kernel enqueue function
+`urEnqueueKernelLaunchCustomExp`. `urEnqueueKernelLaunchCustomExp` launches
+a kernel using the list of launch properties associated with the descriptor.
 `urEnqueueKernelLaunchCustomExp` corresponds closely to the CUDA Driver API
 `cuLaunchKernelEx`.
 
-Many kernel lauch properties can be supported, such as cooperative kernel launches. As such,
+Many kernel launch properties can be supported, such as cooperative kernel launches. As such,
 eventually this extension should be able to replace the cooperative kernels
 UR extension.
 
@@ -61,15 +61,14 @@ Enums
 * ${x}_structure_type_t
     ${X}_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS
     ${X}_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE
-    ${X}_STRUCTURE_TYPE_EXP_KERNEL_LAUNCH_DESC
+    ${X}_STRUCTURE_TYPE_EXP_BASE_DESC
 
 
 Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ${x}_exp_launch_properties_cluster_dims_t
-* ${x}_exp_launch_properties_cooperative_t
-* ${x}_exp_kernel_launch_desc_t
+* ${x}_exp_properties_dim3_t
+* ${x}_exp_properties_bool_t
 
 Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

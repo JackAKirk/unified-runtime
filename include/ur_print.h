@@ -1003,28 +1003,20 @@ UR_APIEXPORT ur_result_t UR_APICALL urPrintExpCommandBufferUpdateValueArgDesc(co
 UR_APIEXPORT ur_result_t UR_APICALL urPrintExpCommandBufferUpdateKernelLaunchDesc(const struct ur_exp_command_buffer_update_kernel_launch_desc_t params, char *buffer, const size_t buff_size, size_t *out_size);
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Print ur_exp_launch_properties_cluster_dims_t struct
+/// @brief Print ur_exp_properties_dim3_t struct
 /// @returns
 ///     - ::UR_RESULT_SUCCESS
 ///     - ::UR_RESULT_ERROR_INVALID_SIZE
 ///         - `buff_size < out_size`
-UR_APIEXPORT ur_result_t UR_APICALL urPrintExpLaunchPropertiesClusterDims(const struct ur_exp_launch_properties_cluster_dims_t params, char *buffer, const size_t buff_size, size_t *out_size);
+UR_APIEXPORT ur_result_t UR_APICALL urPrintExpPropertiesDim3(const struct ur_exp_properties_dim3_t params, char *buffer, const size_t buff_size, size_t *out_size);
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Print ur_exp_launch_properties_cooperative_t struct
+/// @brief Print ur_exp_properties_bool_t struct
 /// @returns
 ///     - ::UR_RESULT_SUCCESS
 ///     - ::UR_RESULT_ERROR_INVALID_SIZE
 ///         - `buff_size < out_size`
-UR_APIEXPORT ur_result_t UR_APICALL urPrintExpLaunchPropertiesCooperative(const struct ur_exp_launch_properties_cooperative_t params, char *buffer, const size_t buff_size, size_t *out_size);
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Print ur_exp_kernel_launch_desc_t struct
-/// @returns
-///     - ::UR_RESULT_SUCCESS
-///     - ::UR_RESULT_ERROR_INVALID_SIZE
-///         - `buff_size < out_size`
-UR_APIEXPORT ur_result_t UR_APICALL urPrintExpKernelLaunchDesc(const struct ur_exp_kernel_launch_desc_t params, char *buffer, const size_t buff_size, size_t *out_size);
+UR_APIEXPORT ur_result_t UR_APICALL urPrintExpPropertiesBool(const struct ur_exp_properties_bool_t params, char *buffer, const size_t buff_size, size_t *out_size);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Print ur_exp_peer_info_t enum

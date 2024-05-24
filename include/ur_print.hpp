@@ -335,9 +335,8 @@ inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct 
 inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_command_buffer_update_pointer_arg_desc_t params);
 inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_command_buffer_update_value_arg_desc_t params);
 inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_command_buffer_update_kernel_launch_desc_t params);
-inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_launch_properties_cluster_dims_t params);
-inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_launch_properties_cooperative_t params);
-inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_kernel_launch_desc_t params);
+inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_properties_dim3_t params);
+inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_exp_properties_bool_t params);
 inline std::ostream &operator<<(std::ostream &os, enum ur_exp_peer_info_t value);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1084,8 +1083,8 @@ inline std::ostream &operator<<(std::ostream &os, enum ur_structure_type_t value
     case UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE:
         os << "UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE";
         break;
-    case UR_STRUCTURE_TYPE_EXP_KERNEL_LAUNCH_DESC:
-        os << "UR_STRUCTURE_TYPE_EXP_KERNEL_LAUNCH_DESC";
+    case UR_STRUCTURE_TYPE_EXP_BASE_DESC:
+        os << "UR_STRUCTURE_TYPE_EXP_BASE_DESC";
         break;
     default:
         os << "unknown enumerator";
@@ -1340,17 +1339,17 @@ inline ur_result_t printStruct(std::ostream &os, const void *ptr) {
     } break;
 
     case UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS: {
-        const ur_exp_launch_properties_cluster_dims_t *pstruct = (const ur_exp_launch_properties_cluster_dims_t *)ptr;
+        const ur_exp_properties_dim3_t *pstruct = (const ur_exp_properties_dim3_t *)ptr;
         printPtr(os, pstruct);
     } break;
 
     case UR_STRUCTURE_TYPE_EXP_LAUNCH_PROPERTIES_COOPERATIVE: {
-        const ur_exp_launch_properties_cooperative_t *pstruct = (const ur_exp_launch_properties_cooperative_t *)ptr;
+        const ur_exp_properties_bool_t *pstruct = (const ur_exp_properties_bool_t *)ptr;
         printPtr(os, pstruct);
     } break;
 
-    case UR_STRUCTURE_TYPE_EXP_KERNEL_LAUNCH_DESC: {
-        const ur_exp_kernel_launch_desc_t *pstruct = (const ur_exp_kernel_launch_desc_t *)ptr;
+    case UR_STRUCTURE_TYPE_EXP_BASE_DESC: {
+        const ur_base_desc_t *pstruct = (const ur_base_desc_t *)ptr;
         printPtr(os, pstruct);
     } break;
     default:
@@ -9868,11 +9867,11 @@ inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_command_bu
     return os;
 }
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Print operator for the ur_exp_launch_properties_cluster_dims_t type
+/// @brief Print operator for the ur_exp_properties_dim3_t type
 /// @returns
 ///     std::ostream &
-inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_launch_properties_cluster_dims_t params) {
-    os << "(struct ur_exp_launch_properties_cluster_dims_t){";
+inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_properties_dim3_t params) {
+    os << "(struct ur_exp_properties_dim3_t){";
 
     os << ".stype = ";
 
@@ -9903,11 +9902,11 @@ inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_launch_pro
     return os;
 }
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Print operator for the ur_exp_launch_properties_cooperative_t type
+/// @brief Print operator for the ur_exp_properties_bool_t type
 /// @returns
 ///     std::ostream &
-inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_launch_properties_cooperative_t params) {
-    os << "(struct ur_exp_launch_properties_cooperative_t){";
+inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_properties_bool_t params) {
+    os << "(struct ur_exp_properties_bool_t){";
 
     os << ".stype = ";
 
@@ -9920,34 +9919,9 @@ inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_launch_pro
                              (params.pNext));
 
     os << ", ";
-    os << ".cooperative = ";
+    os << ".value = ";
 
-    os << (params.cooperative);
-
-    os << "}";
-    return os;
-}
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Print operator for the ur_exp_kernel_launch_desc_t type
-/// @returns
-///     std::ostream &
-inline std::ostream &operator<<(std::ostream &os, const struct ur_exp_kernel_launch_desc_t params) {
-    os << "(struct ur_exp_kernel_launch_desc_t){";
-
-    os << ".stype = ";
-
-    os << (params.stype);
-
-    os << ", ";
-    os << ".pNext = ";
-
-    ur::details::printStruct(os,
-                             (params.pNext));
-
-    os << ", ";
-    os << ".numProperties = ";
-
-    os << (params.numProperties);
+    os << (params.value);
 
     os << "}";
     return os;

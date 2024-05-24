@@ -1011,26 +1011,19 @@ ur_result_t urPrintExpCommandBufferUpdateKernelLaunchDesc(
     return str_copy(&ss, buffer, buff_size, out_size);
 }
 
-ur_result_t urPrintExpLaunchPropertiesClusterDims(
-    const struct ur_exp_launch_properties_cluster_dims_t params, char *buffer,
-    const size_t buff_size, size_t *out_size) {
-    std::stringstream ss;
-    ss << params;
-    return str_copy(&ss, buffer, buff_size, out_size);
-}
-
-ur_result_t urPrintExpLaunchPropertiesCooperative(
-    const struct ur_exp_launch_properties_cooperative_t params, char *buffer,
-    const size_t buff_size, size_t *out_size) {
+ur_result_t
+urPrintExpPropertiesDim3(const struct ur_exp_properties_dim3_t params,
+                         char *buffer, const size_t buff_size,
+                         size_t *out_size) {
     std::stringstream ss;
     ss << params;
     return str_copy(&ss, buffer, buff_size, out_size);
 }
 
 ur_result_t
-urPrintExpKernelLaunchDesc(const struct ur_exp_kernel_launch_desc_t params,
-                           char *buffer, const size_t buff_size,
-                           size_t *out_size) {
+urPrintExpPropertiesBool(const struct ur_exp_properties_bool_t params,
+                         char *buffer, const size_t buff_size,
+                         size_t *out_size) {
     std::stringstream ss;
     ss << params;
     return str_copy(&ss, buffer, buff_size, out_size);

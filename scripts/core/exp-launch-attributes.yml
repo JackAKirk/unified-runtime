@@ -23,63 +23,48 @@ desc: "Structure Type experimental enumerations."
 name: $x_structure_type_t
 etors:
     - name: EXP_LAUNCH_PROPERTIES_CLUSTER_DIMS
-      desc: $x_exp_launch_properties_cluster_dims_t
+      desc: $x_exp_properties_dim3_t
       value: "0x5010"
     - name: EXP_LAUNCH_PROPERTIES_COOPERATIVE
-      desc: $x_exp_launch_properties_cooperative_t
+      desc: $x_exp_properties_bool_t
       value: "0x5011"
-    - name: EXP_KERNEL_LAUNCH_DESC
-      desc: $x_exp_kernel_launch_desc_t
+    - name: EXP_BASE_DESC
+      desc: $x_base_desc_t
       value: "0x5012"
 --- #--------------------------------------------------------------------------
 type: struct
-desc: "Specify the distributed shared memory cluster dimensions"
-details:
-    - Specify this property in $xEnqueueKernelLaunchCustomExp via $x_exp_kernel_launch_desc_t as part
-      of a `pNext` chain.
-name: $x_exp_launch_properties_cluster_dims_t
+desc: "Specifies a 3-dimension uint32_t value set property"
+name: $x_exp_properties_dim3_t
 base: $x_base_properties_t
 members:
     - type: uint32_t
       name: x
-      desc: "[in] x cluster dimension size"
+      desc: "[in] x dimension size"
     - type: uint32_t
       name: y
-      desc: "[in] y cluster dimension size"
+      desc: "[in] y dimension size"
     - type: uint32_t
       name: z
-      desc: "[in] z cluster dimension size"
+      desc: "[in] z dimension size"
 --- #--------------------------------------------------------------------------
 type: struct
-desc: "Specify whether to launch a cooperative kernel"
-details:
-    - Specify this property in $xEnqueueKernelLaunchCustomExp via $x_exp_kernel_launch_desc_t as part
-      of a `pNext` chain.
-name: $x_exp_launch_properties_cooperative_t
+desc: "Specifies a boolean value property"
+name: $x_exp_properties_bool_t
 base: $x_base_properties_t
 members:
-    - type: int
-      name: cooperative
-      desc: "[in] non-zero value indicates a cooperative kernel"
---- #--------------------------------------------------------------------------
-type: struct
-desc: "Kernel Launch Descriptor Type"
-name: $x_exp_kernel_launch_desc_t
-base: $x_base_desc_t
-members:
-    - type: uint32_t
-      name: numProperties
-      desc: "[in] number of properties in linked-list"
+    - type: ur_bool_t
+      name: value
+      desc: "[in] boolean type value"
 --- #--------------------------------------------------------------------------
 type: function
-desc: "Launch kernel with custom Launch attributes"
+desc: "Launch a kernel with custom launch properties"
 class: $xEnqueue
 name: KernelLaunchCustomExp
 ordinal: "0"
 analogue:
     - "**cuLaunchKernelEx**"
 details:
-    - "Launches the kernel using the specified launch attributes"
+    - "Launches the kernel using the specified launch properties"
     - "Consult the appropriate adapter driver documentation for details of adapter specific behavior and native error codes that may be returned."
 params:
     - type: $x_queue_handle_t
@@ -97,9 +82,9 @@ params:
     - type: const size_t*
       name: pLocalWorkSize
       desc: "[in][optional] pointer to an array of workDim unsigned values that specify the number of local work-items forming a work-group that will execute the kernel function. If nullptr, the runtime implementation will choose the work-group size."
-    - type: const $x_exp_kernel_launch_desc_t*
+    - type: const $x_base_desc_t*
       name: kernelLaunchDesc
-      desc: "[in] Descriptor of the custom kernel launch"
+      desc: "[in] Descriptor of a custom kernel launch"
     - type: uint32_t
       name: numEventsInWaitList
       desc: "[in] size of the event wait list"
