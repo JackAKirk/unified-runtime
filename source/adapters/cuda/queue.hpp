@@ -86,6 +86,7 @@ struct ur_queue_handle_t_ {
   ~ur_queue_handle_t_() {
     urContextRelease(Context);
     urDeviceRelease(Device);
+    // todo fix so that queue can see native device
   }
 
   void computeStreamWaitForBarrierIfNeeded(CUstream Strean, uint32_t StreamI);

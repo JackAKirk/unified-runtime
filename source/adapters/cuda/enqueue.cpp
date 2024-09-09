@@ -26,7 +26,16 @@ ur_result_t enqueueEventsWait(ur_queue_handle_t CommandQueue, CUstream Stream,
   UR_ASSERT(EventWaitList, UR_RESULT_SUCCESS);
 
   try {
-    ScopedContext Active(CommandQueue->getDevice());
+    //ScopedContext Active(CommandQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != CommandQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(CommandQueue->getDevice()->getNativeContext()));
+    }
 
     auto Result = forLatestEvents(
         EventWaitList, NumEventsInWaitList,
@@ -201,6 +210,7 @@ setKernelParams([[maybe_unused]] const ur_context_handle_t Context,
 
   try {
     // Set the active context here as guessLocalWorkSize needs an active context
+    // todo check whether this is only ever called when queue or program is instantiatied and update accordingly.
     ScopedContext Active(Device);
     {
       size_t *ReqdThreadsPerBlock = Kernel->ReqdThreadsPerBlock;
@@ -328,7 +338,15 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueEventsWaitWithBarrier(
   // This function makes one stream work on the previous work (or work
   // represented by input events) and then all future work waits on that stream.
   try {
-    ScopedContext Active(hQueue->getDevice());
+    //ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
     uint32_t StreamToken;
     ur_stream_guard_ Guard;
     CUstream CuStream = hQueue->getNextComputeStream(
@@ -440,7 +458,16 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueKernelLaunch(
   try {
     std::unique_ptr<ur_event_handle_t_> RetImplEvent{nullptr};
 
-    ScopedContext Active(hQueue->getDevice());
+    //ScopedContext Active(hQueue->getDevice());
+        // If queue constructed we can "safely" set device context
+
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
     uint32_t StreamToken;
     ur_stream_guard_ Guard;
     CUstream CuStream = hQueue->getNextComputeStream(
@@ -607,7 +634,16 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueKernelLaunchCustomExp(
   try {
     std::unique_ptr<ur_event_handle_t_> RetImplEvent{nullptr};
 
-    ScopedContext Active(hQueue->getDevice());
+    // ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
     uint32_t StreamToken;
     ur_stream_guard_ Guard;
     CUstream CuStream = hQueue->getNextComputeStream(
@@ -764,8 +800,17 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemBufferReadRect(
       hQueue = hBuffer->LastQueueWritingToMemObj;
     }
 
-    auto Device = hQueue->getDevice();
-    ScopedContext Active(Device);
+    //auto Device = hQueue->getDevice();
+    //ScopedContext Active(Device);
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     CUstream Stream = hQueue->getNextTransferStream();
 
     UR_CHECK_ERROR(enqueueEventsWait(hQueue, Stream, numEventsInWaitList,
@@ -815,7 +860,16 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemBufferWriteRect(
   hBuffer->setLastQueueWritingToMemObj(hQueue);
 
   try {
-    ScopedContext Active(hQueue->getDevice());
+    //ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     CUstream cuStream = hQueue->getNextTransferStream();
     UR_CHECK_ERROR(enqueueEventsWait(hQueue, cuStream, numEventsInWaitList,
                                      phEventWaitList));
@@ -862,7 +916,16 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemBufferCopy(
   std::unique_ptr<ur_event_handle_t_> RetImplEvent{nullptr};
 
   try {
-    ScopedContext Active(hQueue->getDevice());
+    // ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     ur_result_t Result = UR_RESULT_SUCCESS;
 
     auto Stream = hQueue->getNextTransferStream();
@@ -911,7 +974,16 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemBufferCopyRect(
   std::unique_ptr<ur_event_handle_t_> RetImplEvent{nullptr};
 
   try {
-    ScopedContext Active(hQueue->getDevice());
+    // ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     CUstream CuStream = hQueue->getNextTransferStream();
     Result = enqueueEventsWait(hQueue, CuStream, numEventsInWaitList,
                                phEventWaitList);
@@ -984,7 +1056,15 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemBufferFill(
   hBuffer->setLastQueueWritingToMemObj(hQueue);
 
   try {
-    ScopedContext Active(hQueue->getDevice());
+    //ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
 
     auto Stream = hQueue->getNextTransferStream();
     UR_CHECK_ERROR(enqueueEventsWait(hQueue, Stream, numEventsInWaitList,
@@ -1144,8 +1224,17 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemImageRead(
       hQueue = hImage->LastQueueWritingToMemObj;
     }
 
-    auto Device = hQueue->getDevice();
-    ScopedContext Active(Device);
+    //auto Device = hQueue->getDevice();
+    // ScopedContext Active(Device);
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     CUstream Stream = hQueue->getNextTransferStream();
 
     UR_CHECK_ERROR(enqueueEventsWait(hQueue, Stream, numEventsInWaitList,
@@ -1219,7 +1308,16 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemImageWrite(
   ur_result_t Result = UR_RESULT_SUCCESS;
 
   try {
-    ScopedContext Active(hQueue->getDevice());
+    // ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     CUstream CuStream = hQueue->getNextTransferStream();
     Result = enqueueEventsWait(hQueue, CuStream, numEventsInWaitList,
                                phEventWaitList);
@@ -1288,7 +1386,16 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemImageCopy(
   ur_result_t Result = UR_RESULT_SUCCESS;
 
   try {
-    ScopedContext Active(hQueue->getDevice());
+    //ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     CUstream CuStream = hQueue->getNextTransferStream();
     Result = enqueueEventsWait(hQueue, CuStream, numEventsInWaitList,
                                phEventWaitList);
@@ -1384,7 +1491,15 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemBufferMap(
                                     MapPtr, numEventsInWaitList,
                                     phEventWaitList, phEvent);
   } else {
-    ScopedContext Active(hQueue->getDevice());
+    //ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
 
     if (IsPinned) {
       Result = urEnqueueEventsWait(hQueue, numEventsInWaitList, phEventWaitList,
@@ -1431,7 +1546,15 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemUnmap(
         hQueue, hMem, true, Map->getMapOffset(), Map->getMapSize(), pMappedPtr,
         numEventsInWaitList, phEventWaitList, phEvent);
   } else {
-    ScopedContext Active(hQueue->getDevice());
+    //ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
 
     if (IsPinned) {
       Result = urEnqueueEventsWait(hQueue, numEventsInWaitList, phEventWaitList,
@@ -1462,7 +1585,16 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueUSMFill(
   std::unique_ptr<ur_event_handle_t_> EventPtr{nullptr};
 
   try {
-    ScopedContext Active(hQueue->getDevice());
+    // ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     uint32_t StreamToken;
     ur_stream_guard_ Guard;
     CUstream CuStream = hQueue->getNextComputeStream(
@@ -1516,7 +1648,16 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueUSMMemcpy(
   std::unique_ptr<ur_event_handle_t_> EventPtr{nullptr};
 
   try {
-    ScopedContext Active(hQueue->getDevice());
+    // ScopedContext Active(hQueue->getDevice());
+    // If queue constructed we can "safely" set device context
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     CUstream CuStream = hQueue->getNextTransferStream();
     Result = enqueueEventsWait(hQueue, CuStream, numEventsInWaitList,
                                phEventWaitList);
@@ -1579,7 +1720,15 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueUSMPrefetch(
   std::unique_ptr<ur_event_handle_t_> EventPtr{nullptr};
 
   try {
-    ScopedContext Active(hQueue->getDevice());
+    //ScopedContext Active(hQueue->getDevice());
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     CUstream CuStream = hQueue->getNextTransferStream();
     Result = enqueueEventsWait(hQueue, CuStream, numEventsInWaitList,
                                phEventWaitList);
@@ -1647,7 +1796,14 @@ urEnqueueUSMAdvise(ur_queue_handle_t hQueue, const void *pMem, size_t size,
   std::unique_ptr<ur_event_handle_t_> EventPtr{nullptr};
 
   try {
-    ScopedContext Active(hQueue->getDevice());
+    //ScopedContext Active(hQueue->getDevice());
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
 
     if (phEvent) {
       EventPtr =
@@ -1699,7 +1855,14 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueUSMMemcpy2D(
   ur_result_t result = UR_RESULT_SUCCESS;
 
   try {
-    ScopedContext active(hQueue->getDevice());
+    //ScopedContext active(hQueue->getDevice());
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
     CUstream cuStream = hQueue->getNextTransferStream();
     result = enqueueEventsWait(hQueue, cuStream, numEventsInWaitList,
                                phEventWaitList);
@@ -1760,8 +1923,16 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemBufferRead(
       hQueue = hBuffer->LastQueueWritingToMemObj;
     }
 
-    auto Device = hQueue->getDevice();
-    ScopedContext Active(Device);
+    //auto Device = hQueue->getDevice();
+    //ScopedContext Active(Device);
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     CUstream Stream = hQueue->getNextTransferStream();
 
     UR_CHECK_ERROR(enqueueEventsWait(hQueue, Stream, numEventsInWaitList,
@@ -1811,7 +1982,15 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueMemBufferWrite(
   hBuffer->setLastQueueWritingToMemObj(hQueue);
 
   try {
-    ScopedContext Active(hQueue->getDevice());
+    //ScopedContext Active(hQueue->getDevice());
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
+
     CUstream CuStream = hQueue->getNextTransferStream();
 
     UR_CHECK_ERROR(enqueueEventsWait(hQueue, CuStream, numEventsInWaitList,
@@ -1932,7 +2111,14 @@ UR_APIEXPORT ur_result_t UR_APICALL urEnqueueTimestampRecordingExp(
   ur_result_t Result = UR_RESULT_SUCCESS;
   std::unique_ptr<ur_event_handle_t_> RetImplEvent{nullptr};
   try {
-    ScopedContext Active(hQueue->getDevice());
+    //ScopedContext Active(hQueue->getDevice());
+    CUcontext Original = nullptr;
+    UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != hQueue->getDevice()->getNativeContext()) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(hQueue->getDevice()->getNativeContext()));
+    }
     CUstream CuStream = hQueue->getNextComputeStream();
 
     UR_CHECK_ERROR(enqueueEventsWait(hQueue, CuStream, numEventsInWaitList,

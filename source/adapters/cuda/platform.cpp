@@ -80,6 +80,7 @@ urPlatformGet(ur_adapter_handle_t *, uint32_t, uint32_t NumEntries,
             for (int i = 0; i < NumDevices; ++i) {
               CUdevice Device;
               UR_CHECK_ERROR(cuDeviceGet(&Device, i));
+              // actually need this for buffers?
               CUcontext Context;
               UR_CHECK_ERROR(cuDevicePrimaryCtxRetain(&Context, Device));
 
@@ -89,7 +90,11 @@ urPlatformGet(ur_adapter_handle_t *, uint32_t, uint32_t NumEntries,
 
               // Use default stream to record base event counter
               UR_CHECK_ERROR(cuEventRecord(EvBase, 0));
-
+              
+              // We can't have initialized cuContext for unused devices and be compatible with multi gpu cuda-aware MPI.
+              UR_CHECK_ERROR(cuDevicePrimaryCtxRelease(Device));
+              // each devices has a copy of the primary context: but assume useless since it has been deinitialized by the above
+              // it is either an active primary context, or invalid (as in this case).
               Platform.Devices.emplace_back(
                   new ur_device_handle_t_{Device, Context, EvBase, &Platform,
                                           static_cast<uint32_t>(i)});

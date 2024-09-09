@@ -94,9 +94,9 @@ struct ur_context_handle_t_ {
   };
 
   ~ur_context_handle_t_() {
-    for (auto &Dev : Devices) {
+    /*for (auto &Dev : Devices) {
       urDeviceRelease(Dev);
-    }
+    }*/
   }
 
   void invokeExtendedDeleters() {
@@ -148,14 +148,18 @@ public:
     if (!Device) {
       throw UR_RESULT_ERROR_INVALID_DEVICE;
     }
-    setContext(Device->getNativeContext());
+    CUcontext c;
+    cuDevicePrimaryCtxRetain(&c, Device->get());
+    d = Device->get();
+    setContext(Device->getNativeContext())
   }
 
   ScopedContext(CUcontext NativeContext) { setContext(NativeContext); }
 
-  ~ScopedContext() {}
+  ~ScopedContext() {cuDevicePrimaryCtxRelease(d);}
 
 private:
+  CUdevice d;
   void setContext(CUcontext Desired) {
     CUcontext Original = nullptr;
 

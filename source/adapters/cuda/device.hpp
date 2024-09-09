@@ -18,7 +18,6 @@ private:
   using native_type = CUdevice;
 
   native_type CuDevice;
-  CUcontext CuContext;
   CUevent EvBase; // CUDA event used as base counter
   std::atomic_uint32_t RefCount;
   ur_platform_handle_t Platform;
@@ -34,6 +33,7 @@ private:
   bool MaxLocalMemSizeChosen{false};
 
 public:
+  CUcontext CuContext;
   ur_device_handle_t_(native_type cuDevice, CUcontext cuContext, CUevent evBase,
                       ur_platform_handle_t platform, uint32_t DevIndex)
       : CuDevice(cuDevice), CuContext(cuContext), EvBase(evBase), RefCount{1},
@@ -76,7 +76,8 @@ public:
     UR_CHECK_ERROR(cuDeviceTotalMem(&MaxAllocSize, cuDevice));
   }
 
-  ~ur_device_handle_t_() { cuDevicePrimaryCtxRelease(CuDevice); }
+//  ~ur_device_handle_t_() { cuDevicePrimaryCtxRelease(CuDevice); }
+  ~ur_device_handle_t_() {}
 
   native_type get() const noexcept { return CuDevice; };
 

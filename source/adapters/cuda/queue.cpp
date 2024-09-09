@@ -131,6 +131,21 @@ urQueueCreate(ur_context_handle_t hContext, ur_device_handle_t hDevice,
   try {
     std::unique_ptr<ur_queue_handle_t_> Queue{nullptr};
 
+      CUcontext Context;
+      UR_CHECK_ERROR(cuDevicePrimaryCtxRetain(&Context, hDevice->get()));
+      // do we set it here or later? design choice... here for now
+      CUcontext Original;
+      UR_CHECK_ERROR(cuCtxGetCurrent(&Original));
+
+    // Make sure the desired context is active on the current thread, setting
+    // it if necessary
+    if (Original != Context) {
+      UR_CHECK_ERROR(cuCtxSetCurrent(Context));
+    }
+
+    //give device a live context
+    hDevice->CuContext = Context;
+
     if (std::find(hContext->getDevices().begin(), hContext->getDevices().end(),
                   hDevice) == hContext->getDevices().end()) {
       *phQueue = nullptr;
@@ -154,10 +169,10 @@ urQueueCreate(ur_context_handle_t hContext, ur_device_handle_t hDevice,
         IsOutOfOrder = true;
       }
       if (URFlags & UR_QUEUE_FLAG_PRIORITY_HIGH) {
-        ScopedContext Active(hDevice);
+        //ScopedContext Active(hDevice);
         UR_CHECK_ERROR(cuCtxGetStreamPriorityRange(nullptr, &Priority));
       } else if (URFlags & UR_QUEUE_FLAG_PRIORITY_LOW) {
-        ScopedContext Active(hDevice);
+        //ScopedContext Active(hDevice);
         UR_CHECK_ERROR(cuCtxGetStreamPriorityRange(&Priority, nullptr));
       }
     }
@@ -201,7 +216,9 @@ UR_APIEXPORT ur_result_t UR_APICALL urQueueRelease(ur_queue_handle_t hQueue) {
     if (!hQueue->backendHasOwnership())
       return UR_RESULT_SUCCESS;
 
-    ScopedContext Active(hQueue->getDevice());
+    // ScopedContext Active(hQueue->getDevice());
+    ScopedContext Active(hQueue->getDevice()->getNativeContext());
+
 
     hQueue->forEachStream([](CUstream S) {
       UR_CHECK_ERROR(cuStreamSynchronize(S));
@@ -225,7 +242,8 @@ UR_APIEXPORT ur_result_t UR_APICALL urQueueFinish(ur_queue_handle_t hQueue) {
   ur_result_t Result = UR_RESULT_SUCCESS;
 
   try {
-    ScopedContext active(hQueue->getDevice());
+    //ScopedContext active(hQueue->getDevice());
+    ScopedContext active(hQueue->getDevice()->getNativeContext());
 
     hQueue->syncStreams</*ResetUsed=*/true>(
         [](CUstream s) { UR_CHECK_ERROR(cuStreamSynchronize(s)); });
@@ -255,7 +273,8 @@ urQueueGetNativeHandle(ur_queue_handle_t hQueue, ur_queue_native_desc_t *pDesc,
                        ur_native_handle_t *phNativeQueue) {
   std::ignore = pDesc;
 
-  ScopedContext Active(hQueue->getDevice());
+  // ScopedContext Active(hQueue->getDevice());
+  ScopedContext Active(hQueue->getDevice())->getNativeContext();
   *phNativeQueue =
       reinterpret_cast<ur_native_handle_t>(hQueue->getNextComputeStream());
   return UR_RESULT_SUCCESS;

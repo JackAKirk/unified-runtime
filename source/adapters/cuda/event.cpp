@@ -231,6 +231,8 @@ urEventWait(uint32_t numEvents, const ur_event_handle_t *phEventWaitList) {
   try {
     // Interop events don't have an associated queue, so get device through
     // context
+    // In case no e.g. queue exists at this point, and no associated CUcontext is initialized, we are forced to retain a primary context here
+    // Unfortunately for such as case (no e.g. queue is currently instantiated) there would be a performance overhead of ~100ms for each call of urEventWait
     ScopedContext Active(phEventWaitList[0]->getContext()->getDevices()[0]);
 
     auto WaitFunc = [](ur_event_handle_t Event) -> ur_result_t {

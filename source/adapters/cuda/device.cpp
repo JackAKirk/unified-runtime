@@ -1126,7 +1126,9 @@ urDevicePartition(ur_device_handle_t, const ur_device_partition_properties_t *,
 /// devices.
 UR_APIEXPORT ur_result_t UR_APICALL
 urDeviceRelease(ur_device_handle_t hDevice) {
-  std::ignore = hDevice;
+  //std::ignore = hDevice;
+  // todo add error check..
+  cuDevicePrimaryCtxRelease(hDevice->get());
   return UR_RESULT_SUCCESS;
 }
 
